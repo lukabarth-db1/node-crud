@@ -1,11 +1,17 @@
 import 'dotenv/config';
 import express from 'express';
 import connectDatabase from './config/database';
+import productRouter from './routes/product.routes';
+import errorMiddleware from './middlewares/error.middleware';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
 
 app.use(express.json());
+
+app.use('/products', productRouter);
+
+app.use(errorMiddleware);
 
 connectDatabase()
   .then(() => {
