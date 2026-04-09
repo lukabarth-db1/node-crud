@@ -14,7 +14,7 @@ const create = async (data: CreateProductDto): Promise<IProduct> => {
 };
 
 const update = async (id: string, data: UpdateProductDto): Promise<IProduct | null> => {
-  return Product.findByIdAndUpdate(id, data, { new: true });
+  return Product.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 };
 
 const remove = async (id: string): Promise<IProduct | null> => {
