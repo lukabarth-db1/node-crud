@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { Error as MongooseError } from 'mongoose';
 
 const errorMiddleware = (
   error: Error,
@@ -8,6 +9,11 @@ const errorMiddleware = (
 ): void => {
   if (error.message === 'Product not found') {
     res.status(404).json({ message: error.message });
+    return;
+  }
+
+  if (error instanceof MongooseError.CastError) {
+    res.status(400).json({ message: 'Invalid ID format' });
     return;
   }
 
