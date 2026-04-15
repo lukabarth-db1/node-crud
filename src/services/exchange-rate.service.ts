@@ -8,6 +8,41 @@ interface RatesCache {
 }
 
 let cache: RatesCache | null = null;
+let inFlightRatesPromise: Promise<Record<string, number>> | null = null;
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
+const parseRatesResponse = (payload: unknown): Record<string, number> => {
+  if (!isRecord(payload)) {
+    throw new Error('Open Exchange Rates API returned an invalid payload');
+  }
+
+  if (payload.error === true) {
+    const message = typeof payload.description === 'string'
+      ? payload.description
+      : typeof payload.message === 'string'
+        ? payload.message
+        : 'Unknown API error';
+    throw new Error(`Open Exchange Rates API error: ${message}`);
+  }
+
+  if (!isRecord(payload.rates)) {
+    throw new Error('Open Exchange Rates API returned payload without valid rates');
+  }
+
+  const validatedRates: Record<string, number> = {};
+  for (const [currency, rate] of Object.entries(payload.rates)) {
+    if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) {
+      throw new Error(`Open Exchange Rates API returned invalid rate for currency: ${currency}`);
+    }
+
+    validatedRates[currency] = rate;
+  }
+
+  return validatedRates;
+};
 
 const fetchRates = async (): Promise<Record<string, number>> => {
   const appId = process.env.OPEN_EXCHANGE_RATES_APP_ID;
@@ -21,8 +56,8 @@ const fetchRates = async (): Promise<Record<string, number>> => {
     throw new Error(`Open Exchange Rates API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json() as { rates: Record<string, number> };
-  return data.rates;
+  const data: unknown = await response.json();
+  return parseRatesResponse(data);
 };
 
 const getRates = async (): Promise<Record<string, number>> => {
@@ -32,9 +67,20 @@ const getRates = async (): Promise<Record<string, number>> => {
     return cache.rates;
   }
 
-  const rates = await fetchRates();
-  cache = { rates, fetchedAt: now };
-  return rates;
+  if (inFlightRatesPromise) {
+    return inFlightRatesPromise;
+  }
+
+  inFlightRatesPromise = fetchRates()
+    .then((rates) => {
+      cache = { rates, fetchedAt: Date.now() };
+      return rates;
+    })
+    .finally(() => {
+      inFlightRatesPromise = null;
+    });
+
+  return inFlightRatesPromise;
 };
 
 const convert = async (amount: number, toCurrency: string): Promise<number> => {
