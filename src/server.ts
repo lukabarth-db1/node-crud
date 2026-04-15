@@ -1,4 +1,3 @@
-import 'express-async-errors';
 import 'dotenv/config';
 import express from 'express';
 import connectDatabase from './config/database';

@@ -56,7 +56,10 @@ src/
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=<appname>
 PORT=3000
+OPEN_EXCHANGE_RATES_APP_ID=your_app_id_here
 ```
+
+> Get a free App ID at [openexchangerates.org](https://openexchangerates.org/signup/free).
 
 ## API Endpoints
 
@@ -64,9 +67,29 @@ PORT=3000
 |---|---|---|
 | `GET` | `/products` | List all products |
 | `GET` | `/products/:id` | Get product by ID |
+| `GET` | `/products/:id/price?currency=EUR` | Get product price in a given currency |
 | `POST` | `/products` | Create a product |
 | `PUT` | `/products/:id` | Update a product |
 | `DELETE` | `/products/:id` | Delete a product |
+
+### Currency conversion — GET `/products/:id/price`
+
+Returns the product price converted to any currency supported by Open Exchange Rates (base: USD).  
+Exchange rates are cached in memory for **5 minutes** to stay within the free plan limits.
+
+```http
+GET /products/64f1a2b3c4d5e6f7a8b9c0d1/price?currency=BRL
+```
+
+```json
+{
+  "productId": "64f1a2b3c4d5e6f7a8b9c0d1",
+  "name": "Awesome Notebook",
+  "originalPrice": 100,
+  "currency": "BRL",
+  "convertedPrice": 520.50
+}
+```
 
 ### Request body — POST `/products`
 
