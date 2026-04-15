@@ -9,6 +9,7 @@ A simple CRUD API built with Node.js, Express, and MongoDB, developed for learni
 - **MongoDB** with **Mongoose** — database and ODM
 - **Zod** — input validation
 - **dotenv** — environment variables
+- **@faker-js/faker** — fake data generation (dev)
 
 ## Project Structure
 
@@ -21,6 +22,7 @@ src/
 ├── models/         # Mongoose schemas
 ├── repositories/   # Database access layer
 ├── routes/         # Route definitions
+├── seeds/          # Database seed scripts
 ├── services/       # Business logic
 └── validators/     # Zod validation schemas
 ```
@@ -93,3 +95,14 @@ All fields are optional.
 | `pnpm dev` | Start with hot reload |
 | `pnpm build` | Compile TypeScript |
 | `pnpm start` | Run compiled build |
+| `pnpm seed` | Clear and repopulate DB with 20 fake products |
+
+## Seeding
+
+To populate the database with fake product data for testing:
+
+```bash
+pnpm seed
+```
+
+This will clear all existing products and insert 20 randomly generated products using `@faker-js/faker`. You can adjust the count by changing `SEED_COUNT` in `src/seeds/seed.ts`.
